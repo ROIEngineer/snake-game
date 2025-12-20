@@ -1,7 +1,7 @@
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-const TILE_SIZE = 10;
+const TILE_SIZE = 40;
 const CANVAS_SIZE = 400;
 
 let snake = [
@@ -11,6 +11,10 @@ let snake = [
 ];
 
 let direction = "UP";
+
+let food = randomFoodPosition();
+
+let score = 0;
 
 function update() {
   const head = { ...snake[0] }; // Array > list of items
@@ -31,16 +35,39 @@ function update() {
   }
 
   snake.unshift(head); // Add new head to beginning
-  snake.pop(); // Removes last item from the end
+
+  if (head.x === food.x && head.y === food.y) {
+    score++;
+    food = randomFoodPosition();
+  } else {
+    snake.pop();
+  }
 }
 
 function draw() {
   ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE); // Clear the previous frame
 
-  ctx.fillStyle = "limegreen"; // Set color
+  // Draw food
+  ctx.fillStyle = "red"; // Set color
+  ctx.fillRect(food.x, food.y, TILE_SIZE, TILE_SIZE);
+
+  // Draw snake
+  ctx.fillStyle = "limegreen";
   snake.forEach((segment) => {
     ctx.fillRect(segment.x, segment.y, TILE_SIZE, TILE_SIZE);
   });
+
+  // Draw score
+  ctx.fillStyle = "black";
+  ctx.font = "16px Arial";
+  ctx.fillText(`Score: ${score}`, 10, 20);
+}
+
+function randomFoodPosition() {
+  return {
+    x: Math.floor(Math.random() * (CANVAS_SIZE / TILE_SIZE)) * TILE_SIZE,
+    y: Math.floor(Math.random() * (CANVAS_SIZE / TILE_SIZE)) * TILE_SIZE
+  }
 }
 
 function gameLoop() {
