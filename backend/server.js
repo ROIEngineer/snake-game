@@ -3,8 +3,11 @@ const express = require("express");
 const app = express();
 const PORT = 3000;
 
+const cors = require("cors");
+
 // Middleware
 app.use(express.json());
+app.use(cors());
 
 // Temporary in-memory storage
 let scores = [];
