@@ -12,6 +12,7 @@ const CANVAS_SIZE = 400;
 let snake = [];
 let food = {};
 let direction = "RIGHT";
+let nextDirection = "RIGHT";
 let score = 0;
 let speed = 200;
 let gameOver = false;
@@ -28,6 +29,7 @@ function init() {
     { x: 160, y: 200 }
   ];
   direction = "RIGHT";
+  nextDirection = "RIGHT";
   food = randomFoodPosition();
   score = 0;
   gameOver = false;
@@ -61,14 +63,16 @@ function startGame() {
 function update() {
   if (paused || gameOver || !interval) return;
 
+  direction = nextDirection;
+
   const head = { ...snake[0] };
+  moveSnake(head);
 
   if (checkWallCollision(head) || checkSelfCollision(head)) {
     gameOver = true;
+    snake.shift();
     return;
   }
-
-  moveSnake(head);
 
   if (head.x === food.x && head.y === food.y) {
     handleFoodCollision();
@@ -91,7 +95,7 @@ function handleFoodCollision() {
   score++;
   updateScoreDisplay();
   food = randomFoodPosition();
-  
+
   if (score % 5 === 0 && speed > 50) {
     increaseSpeed();
   }
@@ -148,8 +152,8 @@ function drawFood() {
 }
 
 function drawSnake() {
-  ctx.fillStyle = "limegreen";
-  snake.forEach(segment => {
+  snake.forEach((segment, index) => {
+    ctx.fillStyle = index === 0 ? "green" : "limegreen";
     ctx.fillRect(segment.x, segment.y, TILE_SIZE, TILE_SIZE);
   });
 }
@@ -251,16 +255,16 @@ function handleKeyDown(e) {
   if (interval && !paused && !gameOver) {
     switch (e.key) {
       case "ArrowUp":
-        if (direction !== "DOWN") direction = "UP";
+        if (direction !== "DOWN") nextDirection = "UP";
         break;
       case "ArrowDown":
-        if (direction !== "UP") direction = "DOWN";
+        if (direction !== "UP") nextDirection = "DOWN";
         break;
       case "ArrowLeft":
-        if (direction !== "RIGHT") direction = "LEFT";
+        if (direction !== "RIGHT") nextDirection = "LEFT";
         break;
       case "ArrowRight":
-        if (direction !== "LEFT") direction = "RIGHT";
+        if (direction !== "LEFT") nextDirection = "RIGHT";
         break;
     }
   }
