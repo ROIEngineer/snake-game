@@ -18,6 +18,8 @@ let speed = 200;
 let gameOver = false;
 let paused = false;
 let interval = null;
+let leaderboard = [];
+let leaderboardLoaded = false;
 
 // ====================
 // INITIALIZATION
@@ -69,6 +71,15 @@ function update() {
   moveSnake(head);
 
   if (checkWallCollision(head) || checkSelfCollision(head)) {
+    submitScore(score);
+
+    fetchScores().then(scores => {
+      leaderboard = scores
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 5);
+      leaderboardLoaded = true;
+    });
+
     gameOver = true;
     snake.shift();
     return;
@@ -174,17 +185,32 @@ function drawPauseScreen() {
 function drawGameOverScreen() {
   ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
   ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
-  
+
   ctx.fillStyle = "white";
   ctx.font = "bold 32px Arial";
   ctx.textAlign = "center";
-  ctx.fillText("Game Over", CANVAS_SIZE / 2, CANVAS_SIZE / 2 - 20);
-  
+  ctx.fillText("Game Over", CANVAS_SIZE / 2, 80);
+
   ctx.font = "20px Arial";
-  ctx.fillText(`Final Score: ${score}`, CANVAS_SIZE / 2, CANVAS_SIZE / 2 + 20);
-  
+  ctx.fillText(`Final Score: ${score}`, CANVAS_SIZE / 2, 120);
+
   ctx.font = "16px Arial";
-  ctx.fillText("Press 'R' to Restart", CANVAS_SIZE / 2, CANVAS_SIZE / 2 + 60);
+  ctx.fillText("Leaderboard", CANVAS_SIZE / 2, 170);
+
+  if (!leaderboardLoaded) {
+    ctx.fillText("Loading...", CANVAS_SIZE / 2, 200);
+    return;
+  }
+
+  leaderboard.forEach((entry, index) => {
+    ctx.fillText(
+      `${index + 1}. ${entry.score}`,
+      CANVAS_SIZE / 2,
+      200 + index * 25
+    );
+  });
+
+  ctx.fillText("Press R to Restart", CANVAS_SIZE / 2, 350);
 }
 
 // ====================
@@ -267,6 +293,33 @@ function handleKeyDown(e) {
         if (direction !== "LEFT") nextDirection = "RIGHT";
         break;
     }
+  }
+}
+
+// ====================
+// BACKEND INTEGRATION
+// ====================
+async function submitScore(finalScore) {
+  try {
+    await fetch("http://localhost:3000/scores", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ score: finalScore })
+    });
+  } catch (error) {
+    console.error("Failed to submit score:", error);
+  }
+}
+
+async function fetchScores() {
+  try {
+    const response = await fetch("http://localhost:3000/scores");
+    return await response.json();
+  } catch (error) {
+    console.error("Failed to fetch scores:", error);
+    return [];
   }
 }
 
