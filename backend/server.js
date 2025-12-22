@@ -3,6 +3,7 @@ const express = require("express");
 const app = express();
 const PORT = 3000;
 
+// Allows frontend to talk to backend - cross origin requests
 const cors = require("cors");
 
 // Middleware
